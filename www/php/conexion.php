@@ -1,9 +1,9 @@
 <?php
 // Datos de conexión a la base de datos
-$host = "localhost"; // Dirección del servidor MySQL (normalmente localhost)
+$host = "mysql"; // Dirección del servidor MySQL (normalmente localhost)
 $user = "root";      // Usuario de MySQL (por defecto es root)
-$password = "";      // Contraseña del usuario (por defecto está vacía en XAMPP/WAMP)
-$dbname = "universidad"; // Nombre de la base de datos
+$password = "admin123!";      // Contraseña del usuario (por defecto está vacía en XAMPP/WAMP)
+$dbname = "universidad";
 
 // Crear conexión
 $conn = new mysqli($host, $user, $password, $dbname);

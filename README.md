@@ -76,13 +76,13 @@ cd ~/[nombre-de-la-carpeta]
 2. **Inicia los contenedores con Docker Compose:**
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 3. **Verifica que los contenedores están funcionando:**
 
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 

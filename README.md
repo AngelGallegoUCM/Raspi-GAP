@@ -29,7 +29,7 @@ echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] 
 
 ```bash
 sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
 5. **Añadir tu usuario al grupo Docker (requiere reinicio):**
@@ -38,10 +38,10 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io
 sudo usermod -aG docker $USER
 ```
 
-6. **Instalar Docker Compose:**
+6. **Comprobar Instalación Docker Compose:**
 
 ```bash
-sudo apt install -y docker-compose
+docker compose version
 ```
 
 

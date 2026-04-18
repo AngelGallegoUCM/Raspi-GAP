@@ -27,6 +27,7 @@ services:
 
   mysql:
     image: mysql:8
+    command: --log-bin-trust-function-creators=1
     ports:
       - "3306:3306"
     volumes:

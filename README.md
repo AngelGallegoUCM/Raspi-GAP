@@ -1,6 +1,6 @@
 # Instalación y despliegue del servidor con Docker en Raspberry Pi 5
 
-Este documento forma parte del Trabajo de Fin de Grado (TFG) realizado por Ángel Gallego Muñoz y Raúl Durán Catalán. A continuación, se detallan los pasos necesarios para instalar y configurar el servidor que alojará la página web del proyecto, utilizando Docker. El objetivo es facilitar la replicabilidad y el despliegue del entorno de desarrollo y producción.
+Este documento forma parte del Trabajo de Fin de Máster (TFG) realizado por Ángel Gallego Muñoz. A continuación, se detallan los pasos necesarios para instalar y configurar el servidor que alojará la página web del proyecto, utilizando Docker. El objetivo es facilitar la replicabilidad y el despliegue del entorno de desarrollo y producción.
 
 ---
 
@@ -58,7 +58,7 @@ sudo apt install -y git
 2. **Clonar el repositorio:**
 
 ```bash
-git clone https://github.com/AngelGallegoUCM/GAP.git ~/[nombre-de-la-carpeta]
+git clone https://github.com/AngelGallegoUCM/Raspi-GAP.git ~/[nombre-de-la-carpeta]
 cd ~/[nombre-de-la-carpeta]
 ```
 

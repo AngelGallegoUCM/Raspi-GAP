@@ -353,7 +353,7 @@ body {
 }
 
 /* Adaptaciones para móvil */
-@media (max-width: 768px) {
+@media (max-width: 770px) {
   .modules-grid {
       grid-template-columns: 1fr;
   }

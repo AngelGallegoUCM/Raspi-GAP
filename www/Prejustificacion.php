@@ -75,9 +75,6 @@ $idProfesorReal = $stmt_prof->get_result()->fetch_assoc()['id'];
             </header>
 
             <div class="form-container">
-                <div class="info-box">
-                    Nota: Al seleccionar una fecha, el sistema mostrará solo las asignaturas que tienes programadas para ese día de la semana.
-                </div>
 
                 <form action="php/ProcesarPrejustificacion.php" method="POST">
                     <div class="form-group">

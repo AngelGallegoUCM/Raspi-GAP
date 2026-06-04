@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $motivo = "PREJUSTIFICACIÓN: " . $_POST['motivo'];
 
     // 1. Crear el registro de asistencia por adelantado
-    $stmt_asistencia = $conn->prepare("INSERT INTO asistencias (asignatura_id, fecha, presente) VALUES (?, ?, 0)");
+    $stmt_asistencia = $conn->prepare("INSERT INTO asistencias (asignatura_id, fecha, presente) VALUES (?, ?, 1)");
     $stmt_asistencia->bind_param("is", $asignatura_id, $fecha);
     
     if ($stmt_asistencia->execute()) {

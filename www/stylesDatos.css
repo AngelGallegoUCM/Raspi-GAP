@@ -138,7 +138,7 @@ button:hover {
     background-color: #dc3545; /* Rojo para "Eliminar" */
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 770px) {
   .content {
     margin-left: 0 !important;
     padding-left: 0 !important;

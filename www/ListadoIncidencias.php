@@ -207,7 +207,7 @@ verificarSesion();
         }
 
         /* ====== MODO TARJETAS EN MÓVIL (INCIDENCIAS) ====== */
-        @media (max-width: 768px) {
+        @media (max-width: 770px) {
 
             .main-content{
                 padding: 16px !important;

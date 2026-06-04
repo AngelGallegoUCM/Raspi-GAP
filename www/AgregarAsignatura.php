@@ -50,7 +50,7 @@ verificarRol(['admin', 'editor']);
     </script>
 </head>
 <body>
-    <?php include("php/sidebar.php"); ?> <!-- Incluir el sidebar -->
+    <?php include("php/sidebar.php"); ?> 
 
     <main class="content">
         <h1>Añadir Asignatura</h1>

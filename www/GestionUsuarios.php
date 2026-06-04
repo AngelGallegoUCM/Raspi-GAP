@@ -1,13 +1,8 @@
 <?php
 // Iniciar sesión y verificar autenticación
 require_once("php/verificar_sesion.php");
-verificarSesion();
+verificarRol(['admin', 'editor']);
 
-// Verificar si el usuario es administrador
-if ($_SESSION['rol'] !== 'admin') {
-    header("Location: index.php");
-    exit;
-}
 
 // Incluir conexión a la base de datos
 require_once("php/conexion.php");
@@ -102,8 +97,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Configuración de paginación
 $registros_por_pagina = 7;
-$pagina_actual = isset($_GET['pagina']) ? intval($_GET['pagina']) : 1;
-$offset = ($pagina_actual - 1) * $registros_por_pagina;
+$pagina = isset($_GET['pagina']) ? intval($_GET['pagina']) : 1;
+$offset = ($pagina - 1) * $registros_por_pagina;
 
 // Obtener el término de búsqueda si existe
 $search = isset($_GET['search']) ? '%' . $_GET['search'] . '%' : null;
@@ -505,7 +500,7 @@ $result = $stmt->get_result();
       }
 
       /* MODO TARJETAS EN MÓVIL */
-      @media (max-width: 768px) {
+      @media (max-width: 770px) {
         .main-content {
           padding: 16px !important;
           padding-bottom: 90px !important;
@@ -735,9 +730,9 @@ $result = $stmt->get_result();
           $url_base = "GestionUsuarios.php?" . implode("&", $url_params) . "&";
           
           // Enlace a la primera página
-          if ($pagina_actual > 1) {
+          if ($pagina > 1) {
               echo "<a href='{$url_base}pagina=1'>&laquo; Primera</a>";
-              echo "<a href='{$url_base}pagina=" . ($pagina_actual - 1) . "'>&lt; Anterior</a>";
+              echo "<a href='{$url_base}pagina=" . ($pagina - 1) . "'>&lt; Anterior</a>";
           } else {
               echo "<span class='disabled'>&laquo; Primera</span>";
               echo "<span class='disabled'>&lt; Anterior</span>";
@@ -745,8 +740,8 @@ $result = $stmt->get_result();
           
           // Mostrar un rango de páginas
           $rango = 2;
-          for ($i = max(1, $pagina_actual - $rango); $i <= min($total_paginas, $pagina_actual + $rango); $i++) {
-              if ($i == $pagina_actual) {
+          for ($i = max(1, $pagina - $rango); $i <= min($total_paginas, $pagina + $rango); $i++) {
+              if ($i == $pagina) {
                   echo "<span class='active'>{$i}</span>";
               } else {
                   echo "<a href='{$url_base}pagina={$i}'>{$i}</a>";
@@ -754,8 +749,8 @@ $result = $stmt->get_result();
           }
           
           // Enlace a la última página
-          if ($pagina_actual < $total_paginas) {
-              echo "<a href='{$url_base}pagina=" . ($pagina_actual + 1) . "'>Siguiente &gt;</a>";
+          if ($pagina < $total_paginas) {
+              echo "<a href='{$url_base}pagina=" . ($pagina + 1) . "'>Siguiente &gt;</a>";
               echo "<a href='{$url_base}pagina={$total_paginas}'>Última &raquo;</a>";
           } else {
               echo "<span class='disabled'>Siguiente &gt;</span>";
@@ -765,7 +760,7 @@ $result = $stmt->get_result();
         </div>
         <p style="text-align: center;">
           Mostrando <?php echo min($registros_por_pagina, $result->num_rows); ?> de <?php echo $total_registros; ?> registros
-          (Página <?php echo $pagina_actual; ?> de <?php echo $total_paginas; ?>)
+          (Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?>)
         </p>
         <?php endif; ?>
         <?php endif; ?>

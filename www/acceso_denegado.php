@@ -25,7 +25,7 @@
         <h1>Acceso Denegado</h1>
         <p>No tienes permiso para acceder a esta página.</p>
         <p><a href="index.php">Volver a la página principal</a></p>
-        <p><a href="login.php">Iniciar sesión con otra cuenta</a></p>
+        <p><a href="logout.php">Iniciar sesión con otra cuenta</a></p>
     </div>
 </body>
 </html>

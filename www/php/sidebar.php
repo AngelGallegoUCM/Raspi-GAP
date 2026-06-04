@@ -16,7 +16,6 @@
     align-self: flex-start;
 }
 
-/* Logo */
 .logo {
     text-align: center;
     padding: 20px 0;
@@ -28,7 +27,6 @@
     height: auto;
 }
 
-/* Navegación */
 .sidebar-nav {
     flex: 1;
     padding: 20px 0;
@@ -58,7 +56,6 @@
     border-left-color: #4e73df;
 }
 
-/* Información del usuario */
 .user-info {
     margin-top: auto;
     padding: 15px;
@@ -96,7 +93,6 @@
     background-color: rgba(255, 255, 255, 0.25);
 }
 
-/* Secciones del menú */
 .menu-section-title {
     font-size: 11px;
     text-transform: uppercase;
@@ -106,7 +102,6 @@
     margin-top: 15px;
 }
 
-/* --- BOTÓN MENÚ MÓVIL --- */
 .mobile-toggle {
     display: none;
     position: fixed;
@@ -123,7 +118,6 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* Overlay */
 .sidebar-overlay {
     display: none;
     opacity: 0;
@@ -131,7 +125,6 @@
     transition: opacity 0.3s ease;
 }
 
-/* Compensación para el contenido principal en escritorio */
 .container {
     display: flex;
     min-height: 100vh;
@@ -141,64 +134,46 @@
     flex: 1;
 }
 
-/* --- ESTILOS RESPONSIVOS (MÓVIL) --- */
-@media (max-width: 768px) {
+@media (max-width: 770px) {
+    .mobile-toggle { display: block; }
 
-    .mobile-toggle {
-        display: block;
-    }
-    
-    /* Cambiar a layout vertical en móvil */
     .container {
         display: block;
         min-height: auto;
     }
 
-    /* Sidebar pegado al viewport */
     .sidebar {
         position: fixed !important;
         top: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
         left: auto !important;
-
         height: 100dvh !important;
         min-height: 100dvh !important;
         width: 250px;
-
         transform: translateX(100%);
         transition: transform 0.3s ease;
-
         z-index: 3000 !important;
-
         margin: 0 !important;
         box-shadow: none;
         overflow: hidden;
     }
 
-    .sidebar.active {
-        transform: translateX(0);
-    }
+    .sidebar.active { transform: translateX(0); }
 
-    /* Overlay ocupa toda la pantalla */
     .sidebar-overlay {
         display: block;
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         z-index: 2500;
         background: rgba(0,0,0,0);
     }
 
-    /* Overlay activo: bloquea clicks para cerrar */
     .sidebar-overlay.active {
         opacity: 1;
         pointer-events: auto;
     }
 
-    /* El nav scrollea dentro */
     .sidebar-nav {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
@@ -206,9 +181,7 @@
 }
 </style>
 
-
 <button class="mobile-toggle" id="mobileToggle">☰</button>
-
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <aside class="sidebar" id="sidebar">
@@ -217,47 +190,68 @@
             <img src="img/logo.png" alt="Logo Universidad Complutense">
         </a>
     </div>
-    
+
     <nav class="sidebar-nav">
+
+        <?php
+        $rol = $_SESSION['rol'] ?? '';
+        $pagina_actual = basename($_SERVER['PHP_SELF']);
+
+        // Helper para generar enlaces activos
+        function nav_link($href, $label, $pagina_actual) {
+            $clase = ($pagina_actual === $href) ? 'current-page' : '';
+            echo "<li><a href=\"{$href}\" class=\"{$clase}\">{$label}</a></li>";
+        }
+        ?>
+
+        <?php if (in_array($rol, ['admin', 'editor'])): ?>
         <div class="menu-section-title">Gestión Académica</div>
         <ul>
-            <li>
-                <a href="ListadoProfesores.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ListadoProfesores.php' ? 'current-page' : ''; ?>">
-                    Listar Profesores
-                </a>
-            </li>
-            <li>
-                <a href="ListadoAulas.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ListadoAulas.php' ? 'current-page' : ''; ?>">
-                    Listar Aulas
-                </a>
-            </li>
-            <li>
-                <a href="ListadoAsignaturas.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ListadoAsignaturas.php' ? 'current-page' : ''; ?>">
-                    Listar Asignaturas
-                </a>
-            </li>
+            <?php nav_link('ListadoProfesores.php',  'Listar Profesores',  $pagina_actual); ?>
+            <?php nav_link('ListadoAulas.php',       'Listar Aulas',       $pagina_actual); ?>
+            <?php nav_link('ListadoAsignaturas.php', 'Listar Asignaturas', $pagina_actual); ?>
         </ul>
-        
+        <?php endif; ?>
+
+        <?php if ($rol === 'profesor' && !empty($_SESSION['IdProfesor'])): ?>
+        <div class="menu-section-title">Mi Espacio</div>
+        <ul>
+            <?php
+            include_once("php/conexion.php");
+            $stmt = $conn->prepare("SELECT id FROM profesores WHERE identificador = ?");
+            $stmt->bind_param("s", $_SESSION['IdProfesor']);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()):
+                $idReal = $row['id'];
+                nav_link("VerDatosProfesor.php?id={$idReal}", 'Mi Horario', $pagina_actual);
+            endif;
+            $stmt->close();
+            ?>
+        </ul>
+        <?php endif; ?>
+
         <div class="menu-section-title">Control de Asistencia</div>
         <ul>
-            <li>
-                <a href="ListadoNoLectivo.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ListadoNoLectivo.php' ? 'current-page' : ''; ?>">
-                    Días no lectivos
-                </a>
-            </li>
-            <li>
-                <a href="ListadoIncidencias.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'ListadoIncidencias.php' ? 'current-page' : ''; ?>">
-                    Listar Incidencias
-                </a>
-            </li>
-            <li>
-                <a href="VerEstadisticas.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'VerEstadisticas.php' ? 'current-page' : ''; ?>">
-                    Ver Estadísticas
-                </a>
-            </li>
+            <?php nav_link('ListadoNoLectivo.php', 'Días no lectivos', $pagina_actual); ?>
+
+            <?php if (in_array($rol, ['admin', 'editor', 'profesor'])): ?>
+                <?php nav_link('ListadoIncidencias.php', 'Listar Incidencias', $pagina_actual); ?>
+            <?php endif; ?>
+
+            <?php if ($rol === 'profesor'): ?>
+                <?php nav_link('Prejustificacion.php', 'Prejustificar Incidencia', $pagina_actual); ?>
+            <?php endif; ?>
+
+            <?php if ($rol === 'admin'): ?>
+                <?php nav_link('ListadoNodos.php',   'Nodos',        $pagina_actual); ?>
+                <?php nav_link('VerEstadisticas.php', 'Estadísticas', $pagina_actual); ?>
+                <?php nav_link('GestionUsuarios.php', 'Configuración', $pagina_actual); ?>
+            <?php endif; ?>
         </ul>
+
     </nav>
-    
+
     <div class="user-info">
         <?php if (isset($_SESSION['username'])): ?>
             <p>¡Hola, <?php echo htmlspecialchars($_SESSION['username']); ?>!</p>
@@ -268,20 +262,15 @@
 </aside>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const toggleBtn = document.getElementById('mobileToggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
+    const sidebar   = document.getElementById('sidebar');
+    const overlay   = document.getElementById('sidebarOverlay');
 
     function toggleMenu() {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-        
-        if (sidebar.classList.contains('active')) {
-            toggleBtn.innerHTML = '✕';
-        } else {
-            toggleBtn.innerHTML = '☰';
-        }
+        const open = sidebar.classList.toggle('active');
+        overlay.classList.toggle('active', open);
+        toggleBtn.innerHTML = open ? '✕' : '☰';
     }
 
     toggleBtn.addEventListener('click', toggleMenu);

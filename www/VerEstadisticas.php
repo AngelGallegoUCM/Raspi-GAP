@@ -61,7 +61,7 @@ verificarRol(['admin']);
         }
 
         /* ====== VISTA MÓVIL (ESTADÍSTICAS) ====== */
-        @media (max-width: 768px) {
+        @media (max-width: 770px) {
         .main-content{
             padding: 16px !important;
             padding-bottom: 90px !important; /* por el botón flotante del sidebar */

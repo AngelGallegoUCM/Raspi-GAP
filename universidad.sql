@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-04-2026 a las 14:48:13
+-- Tiempo de generación: 04-06-2026 a las 16:00:16
 -- Versión del servidor: 10.4.22-MariaDB
 -- Versión de PHP: 8.1.2
 
@@ -52,15 +52,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `generar_asistencias_diarias` (OUT `
     
     -- Si no es un día no lectivo, generar asistencias
     IF es_no_lectivo = 0 THEN
-        -- Eliminar asistencias previas para el día actual (si existen)
-        DELETE FROM asistencias WHERE fecha = CURDATE();
-        
-        -- Insertar nuevas asistencias para las asignaturas del día
+        -- Insertar solo las asistencias que NO existan ya para hoy
+        -- Esto evita duplicar registros si ya existen prejustificaciones
         INSERT INTO asistencias (asignatura_id, fecha, presente)
         SELECT a.id, CURDATE(), FALSE
         FROM horarios h
         JOIN asignaturas a ON h.asignatura_id = a.id
-        WHERE h.dia_semana = dia_actual;
+        WHERE h.dia_semana = dia_actual
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM asistencias asis 
+            WHERE asis.asignatura_id = a.id 
+            AND asis.fecha = CURDATE()
+        );
         
         -- Guardar el resultado en la variable de salida
         SET conteo = ROW_COUNT();
@@ -354,7 +358,10 @@ INSERT INTO `asistencias` (`id`, `asignatura_id`, `fecha`, `presente`) VALUES
 (73, 26, '2025-05-15', 0),
 (74, 11, '2025-05-15', 1),
 (75, 11, '2026-01-28', 0),
-(76, 7, '2026-01-23', 0);
+(76, 7, '2026-01-23', 0),
+(77, 6, '2026-05-15', 0),
+(79, 6, '2026-05-08', 1),
+(80, 11, '2026-05-13', 1);
 
 -- --------------------------------------------------------
 
@@ -542,7 +549,10 @@ INSERT INTO `incidencias` (`id`, `asistencia_id`, `justificada`, `descripcion`, 
 (60, 60, 0, 'Prueba', '2025-05-12 18:31:31'),
 (61, 74, 0, 'Asignatura: Algoritmos, Hora: 12:29, Profesor que registró: Raquel Díaz Sánchez, Profesor asignado: Ángel Gallego Muñoz', '2025-05-15 12:29:42'),
 (62, 75, 1, 'PREJUSTIFICACIÓN: Congreso', '2026-01-28 08:00:00'),
-(63, 76, 1, 'PREJUSTIFICACIÓN: Congreso', '2026-01-23 08:00:00');
+(63, 76, 1, 'PREJUSTIFICACIÓN: Congreso', '2026-01-23 08:00:00'),
+(64, 77, 1, 'PREJUSTIFICACIÓN: Medico', '2026-05-15 08:00:00'),
+(66, 79, 1, 'PREJUSTIFICACIÓN: Medico', '2026-05-08 08:00:00'),
+(67, 80, 1, 'PREJUSTIFICACIÓN: Medico', '2026-05-13 08:00:00');
 
 -- --------------------------------------------------------
 
@@ -606,7 +616,13 @@ INSERT INTO `nolectivo` (`id`, `fecha`, `descripcion`) VALUES
 (11, '2025-11-09', 'Día de la Almudena'),
 (12, '2025-12-06', 'Día de la Constitución'),
 (13, '2025-12-08', 'Inmaculada Concepción'),
-(14, '2025-12-25', 'Navidad');
+(14, '2025-12-25', 'Navidad'),
+(15, '2025-11-14', 'San Alberto Magno'),
+(16, '2026-01-30', 'Santo Tomás de Aquino'),
+(17, '2025-11-10', 'Traslado Ntrª Srª de la Almudena'),
+(18, '2026-05-01', 'Fiesta del Trabajo'),
+(19, '2026-05-02', 'Fiesta de la Comunidad de Madrid'),
+(20, '2026-05-15', 'San Isidro - Fiesta local Madrid');
 
 -- --------------------------------------------------------
 
@@ -766,7 +782,7 @@ ALTER TABLE `asignaturas`
 -- AUTO_INCREMENT de la tabla `asistencias`
 --
 ALTER TABLE `asistencias`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT de la tabla `aulas`
@@ -784,13 +800,13 @@ ALTER TABLE `departamento`
 -- AUTO_INCREMENT de la tabla `horarios`
 --
 ALTER TABLE `horarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT de la tabla `incidencias`
 --
 ALTER TABLE `incidencias`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT de la tabla `nodos`
@@ -802,7 +818,7 @@ ALTER TABLE `nodos`
 -- AUTO_INCREMENT de la tabla `nolectivo`
 --
 ALTER TABLE `nolectivo`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `profesores`

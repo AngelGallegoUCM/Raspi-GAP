@@ -2,16 +2,17 @@ from LoRaRF import SX127x
 import time
 import re
 import mysql.connector
+from Crypto.Cipher import AES
 
-# ── Configuración LoRa ────────────────────────────────────────────────────────
+#  Configuración LoRa 
 LoRa = SX127x()
 LoRa.begin()
 
 LORA_FREQUENCY   = 433000000
-LORA_SPREADING   = 7
+LORA_SPREADING   = 12
 LORA_BANDWIDTH   = 125000
-LORA_CODING_RATE = 5
-LORA_PREAMBLE    = 8
+LORA_CODING_RATE = 8
+LORA_PREAMBLE    = 12
 LORA_SYNC_WORD   = 0x12
 
 LoRa.setFrequency(LORA_FREQUENCY)
@@ -19,7 +20,13 @@ LoRa.setLoRaModulation(LORA_SPREADING, LORA_BANDWIDTH, LORA_CODING_RATE, False)
 LoRa.setLoRaPacket(LoRa.HEADER_EXPLICIT, LORA_PREAMBLE, 255, True, False)
 LoRa.setSyncWord(LORA_SYNC_WORD)
 
-# ── Configuración MariaDB ─────────────────────────────────────────────────────
+#  Clave AES-128 
+AES_KEY = bytes([
+    0x41, 0x53, 0x45, 0x47, 0x55, 0x52, 0x41, 0x44,
+    0x4F, 0x5F, 0x31, 0x32, 0x38, 0x5F, 0x42, 0x49
+])
+
+#  Configuración MariaDB 
 DB_CONFIG = {
     "host":     "127.0.0.1",
     "port":     3306,
@@ -29,24 +36,54 @@ DB_CONFIG = {
     "charset":  "utf8mb4",
 }
 
-# ── Parseo del paquete ────────────────────────────────────────────────────────
-def parse_packet(raw: str):
+
+#  Descifrado AES-128-CBC 
+def decrypt_packet(raw_bytes: bytes) -> str | None:
     """
-    Formatos:
-      0101|C|00000004D|B:85%   → tipo C, contenido = identificador profesor
-      0101|M|AA:BB:CC:DD|B:72% → tipo M, contenido = UID bruto
-    Devuelve (numero_aula, tipo, contenido, bat_pct) o None si formato inválido.
+    El nodo envía: [IV (16 bytes)] + [Datos cifrados AES-CBC (múltiplo de 16)]
+    Devuelve el texto plano sin padding, o None si falla.
     """
-    partes = raw.strip().split("|")
-    if len(partes) != 4:
+    if len(raw_bytes) < 32:
+        print(f"  [WARN] Paquete demasiado corto para ser cifrado: {len(raw_bytes)} bytes")
         return None
-    numero_aula, tipo, contenido, bat_str = partes
+
+    iv          = raw_bytes[:16]
+    cipher_data = raw_bytes[16:]
+
+    if len(cipher_data) % 16 != 0:
+        print(f"  [WARN] Datos cifrados no alineados a 16 bytes: {len(cipher_data)} bytes")
+        return None
+
+    try:
+        cipher    = AES.new(AES_KEY, AES.MODE_CBC, iv)
+        decrypted = cipher.decrypt(cipher_data)
+        plaintext = decrypted.rstrip(b'\x00').decode("utf-8", errors="replace")
+        return plaintext
+    except Exception as e:
+        print(f"  [WARN] Error al descifrar: {e}")
+        return None
+
+
+#  Parseo del paquete 
+def parse_packet(plaintext: str):
+    """
+    Formato esperado: "<numero_aula>|<identificador_profesor>|B:<bat>%"
+    Ejemplo: "0101|00000004D|B:85%"
+    Devuelve (numero_aula, identificador_profesor, bat_pct) o None si el formato no es válido.
+    """
+    partes = plaintext.strip().split("|")
+
+    if len(partes) != 3:
+        return None
+
+    numero_aula, identificador_profesor, bat_str = partes
     m = re.search(r"B:(\d+)%", bat_str)
     bat_pct = int(m.group(1)) if m else -1
-    return numero_aula, tipo, contenido, bat_pct
+
+    return numero_aula, identificador_profesor, bat_pct
 
 
-# ── Upsert nodo + registrar asistencia ───────────────────────────────────────
+#  Upsert nodo + registrar asistencia 
 def procesar_paquete(numero_aula: str, identificador_profesor: str, bat_pct: int):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -62,9 +99,7 @@ def procesar_paquete(numero_aula: str, identificador_profesor: str, bat_pct: int
             return
         aula_id = fila_aula[0]
 
-        # 2. Upsert en tabla nodos:
-        #    - Si ya existe un nodo para ese aula_id → actualiza ultima_conexion y bateria
-        #    - Si no existe → lo crea
+        # 2. Upsert en tabla nodos
         cur.execute("SELECT id FROM nodos WHERE aula_id = %s LIMIT 1", (aula_id,))
         fila_nodo = cur.fetchone()
 
@@ -103,8 +138,8 @@ def procesar_paquete(numero_aula: str, identificador_profesor: str, bat_pct: int
         print(f"  [DB ERROR] {e.msg}")
 
 
-# ── Bucle principal ───────────────────────────────────────────────────────────
-print("Receptor LoRa iniciado. Esperando paquetes...\n")
+#  Bucle principal 
+print("Receptor LoRa iniciado. Esperando paquetes cifrados...\n")
 
 while True:
     try:
@@ -120,27 +155,31 @@ while True:
 
         rssi = LoRa.packetRssi()
         snr  = LoRa.snr()
-        raw  = bytes(payload).decode("utf-8", errors="replace")
-        print(f"[RX] RSSI={rssi} dBm | SNR={snr} dB | '{raw}'")
+        raw_bytes = bytes(payload)
+        print(f"[RX] RSSI={rssi} dBm | SNR={snr} dB | {len(raw_bytes)} bytes cifrados")
 
-        resultado = parse_packet(raw)
-        if resultado is None:
-            print("  [WARN] Formato no reconocido. Ignorando.")
+        #  Descifrar 
+        plaintext = decrypt_packet(raw_bytes)
+        if plaintext is None:
+            print("  [WARN] No se pudo descifrar el paquete. Ignorando.")
             continue
 
-        numero_aula, tipo, contenido, bat_pct = resultado
-        print(f"  Aula={numero_aula} | Tipo={tipo} | Contenido={contenido} | Bat={bat_pct}%")
+        print(f"  [DEC] '{plaintext}'")
 
-        if tipo == "C":
-            procesar_paquete(numero_aula, contenido, bat_pct)
-        elif tipo == "M":
-            print("  [INFO] Paquete tipo M (solo UID). No se registra asistencia.")
-        else:
-            print(f"  [WARN] Tipo '{tipo}' desconocido.")
+        #  Parsear 
+        resultado = parse_packet(plaintext)
+        if resultado is None:
+            print("  [WARN] Formato no reconocido tras descifrar. Ignorando.")
+            continue
+
+        numero_aula, identificador_profesor, bat_pct = resultado
+        print(f"  Aula={numero_aula} | Profesor={identificador_profesor} | Bat={bat_pct}%")
+
+        #  Procesar 
+        procesar_paquete(numero_aula, identificador_profesor, bat_pct)
 
     except KeyboardInterrupt:
         print("\nReceptor detenido.")
         break
     except Exception as e:
         print(f"[ERROR] {e}")
-        time.sleep(1)

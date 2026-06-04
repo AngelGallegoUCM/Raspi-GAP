@@ -1,7 +1,7 @@
 <?php
 // Iniciar sesión y verificar autenticación
 require_once("php/verificar_sesion.php");
-verificarSesion();
+verificarRol(['admin', 'editor']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -125,7 +125,7 @@ verificarSesion();
         .pagination .disabled      { color: #aaa; cursor: not-allowed; }
 
         /* ====== MODO TARJETAS EN MÓVIL ====== */
-        @media (max-width: 768px) {
+        @media (max-width: 770px) {
             .main-content {
                 padding: 16px !important;
                 padding-bottom: 90px !important;

@@ -1,7 +1,7 @@
 <?php
 // Iniciar sesión y verificar autenticación
 require_once("php/verificar_sesion.php");
-verificarSesion();
+verificarRol(['admin', 'editor']);
 // Para ver los datos solo se necesita estar autenticado, cualquier rol puede acceder
 ?>
 <!DOCTYPE html>
